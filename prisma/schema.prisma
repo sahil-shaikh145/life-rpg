@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String     @id @default(cuid())
+  email                 String     @unique
+  password              String
+  username              String     @unique
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  
+  // RPG Character Stats
+  level                 Int        @default(1)
+  totalExp              Int        @default(0)
+  currentExp            Int        @default(0)
+  
+  // Attributes (0-100 scale)
+  strength              Int        @default(10)
+  intellect             Int        @default(10)
+  charisma              Int        @default(10)
+  endurance             Int        @default(10)
+  
+  // Economy
+  gold                  Int        @default(0)
+  
+  // Streaks
+  currentStreak         Int        @default(0)
+  maxStreak             Int        @default(0)
+  lastActivityDate      DateTime?
+  
+  // Inventory & Cosmetics
+  title                 String     @default("Adventurer")
+  theme                 String     @default("dark")
+  inventory             InventoryItem[]
+  
+  // Relations
+  tasks                 Task[]
+  logs                  ActivityLog[]
+}
+
+model Task {
+  id                    String     @id @default(cuid())
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title                 String
+  description           String?
+  category              String     @default("General")
+  
+  // RPG Attributes this task develops
+  strengthXp            Int        @default(0)
+  intellectXp           Int        @default(0)
+  charismaXp            Int        @default(0)
+  enduranceXp           Int        @default(0)
+  baseXp                Int        @default(10)
+  
+  difficulty            String     @default("Normal") // Easy, Normal, Hard, Legendary
+  
+  // Status
+  completed             Boolean    @default(false)
+  completedAt           DateTime?
+  
+  // Dates
+  dueDate               DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  
+  @@index([userId])
+  @@index([completed])
+}
+
+model InventoryItem {
+  id                    String     @id @default(cuid())
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name                  String
+  itemType              String     // badge, theme, cosmetic, consumable
+  rarity                String     @default("common") // common, rare, epic, legendary
+  acquired              DateTime   @default(now())
+  
+  @@index([userId])
+}
+
+model ActivityLog {
+  id                    String     @id @default(cuid())
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  action                String     // task_completed, level_up, streak_milestone
+  xpGained              Int        @default(0)
+  taskCompleted         String?
+  details               Json?
+  
+  createdAt             DateTime   @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+}
