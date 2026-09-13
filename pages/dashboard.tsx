@@ -41,10 +41,13 @@ export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'quests' | 'stats' | 'inventory'>('quests');
+  const [activeTab, setActiveTab] = useState<
+    'quests' | 'stats' | 'inventory'
+  >('quests');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+
     if (!token) {
       router.push('/login');
       return;
@@ -57,9 +60,13 @@ export default function Dashboard() {
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem('token');
+
       const response = await axios.get('/api/user/profile', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
       setUser(response.data.user);
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -70,9 +77,13 @@ export default function Dashboard() {
   const fetchTasks = async () => {
     try {
       const token = localStorage.getItem('token');
+
       const response = await axios.get('/api/tasks', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
       setTasks(response.data.tasks);
     } catch (error) {
       console.error('Failed to fetch tasks:', error);
@@ -88,21 +99,27 @@ export default function Dashboard() {
   const handleTaskCompleted = async (taskId: string) => {
     try {
       const token = localStorage.getItem('token');
+
       const response = await axios.post(
         `/api/tasks/${taskId}/complete`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
-      // Update tasks
-      setTasks(tasks.map(t => t.id === taskId ? { ...t, completed: true } : t));
+      setTasks(
+        tasks.map((t) =>
+          t.id === taskId ? { ...t, completed: true } : t
+        )
+      );
 
-      // Update user
       if (response.data.user) {
         setUser(response.data.user);
       }
 
-      // Show celebration animation
       showLevelUpAnimation(response.data);
     } catch (error) {
       console.error('Failed to complete task:', error);
@@ -110,7 +127,7 @@ export default function Dashboard() {
   };
 
   const handleTaskDeleted = (taskId: string) => {
-    setTasks(tasks.filter(t => t.id !== taskId));
+    setTasks(tasks.filter((t) => t.id !== taskId));
   };
 
   const showLevelUpAnimation = (data: any) => {
@@ -122,17 +139,27 @@ export default function Dashboard() {
   if (loading || !user) {
     return (
       <div className="min-h-screen bg-rpg-darker flex items-center justify-center">
-        <div className="text-rpg-gold text-xl">Initializing Adventure...</div>
+        <div className="text-rpg-gold text-xl">
+          Initializing Adventure...
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rpg-darker via-rpg-dark to-rpg-darker">
-      <Header user={user} onProfileUpdate={setUser} />
+      <Header
+        user={user}
+        onProfileUpdate={(updatedUser) =>
+          setUser((prev) =>
+            prev ? { ...prev, ...updatedUser } : prev
+          )
+        }
+      />
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
           {/* Left Column - Character Stats */}
           <div className="lg:col-span-1">
             <CharacterStats user={user} />
@@ -140,9 +167,10 @@ export default function Dashboard() {
 
           {/* Right Column - Quests and Tabs */}
           <div className="lg:col-span-2">
+
             {/* Tab Navigation */}
             <div className="flex gap-2 mb-6 border-b border-slate-700/30">
-              {(['quests', 'stats', 'inventory'] as const).map(tab => (
+              {(['quests', 'stats', 'inventory'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -152,14 +180,20 @@ export default function Dashboard() {
                       : 'text-slate-400 hover:text-slate-300'
                   }`}
                 >
-                  {tab === 'quests' ? '⚔️ Quests' : tab === 'stats' ? '📊 Stats' : '🎁 Inventory'}
+                  {tab === 'quests'
+                    ? '⚔️ Quests'
+                    : tab === 'stats'
+                    ? '📊 Stats'
+                    : '🎁 Inventory'}
                 </button>
               ))}
             </div>
 
+            {/* Quests */}
             {activeTab === 'quests' && (
               <>
                 <CreateQuestForm onQuestAdded={handleTaskAdded} />
+
                 <QuestList
                   tasks={tasks}
                   onTaskCompleted={handleTaskCompleted}
@@ -168,26 +202,40 @@ export default function Dashboard() {
               </>
             )}
 
+            {/* Stats */}
             {activeTab === 'stats' && (
               <div className="bg-slate-900/40 border border-slate-700/30 rounded-lg p-6">
                 <div className="grid grid-cols-2 gap-4">
+
                   <div className="bg-slate-800/30 p-4 rounded">
-                    <p className="text-slate-400 text-sm mb-1">Total Quests</p>
-                    <p className="text-2xl font-bold text-rpg-gold">{tasks.length}</p>
-                  </div>
-                  <div className="bg-slate-800/30 p-4 rounded">
-                    <p className="text-slate-400 text-sm mb-1">Completed</p>
-                    <p className="text-2xl font-bold text-green-400">
-                      {tasks.filter(t => t.completed).length}
+                    <p className="text-slate-400 text-sm mb-1">
+                      Total Quests
+                    </p>
+
+                    <p className="text-2xl font-bold text-rpg-gold">
+                      {tasks.length}
                     </p>
                   </div>
+
+                  <div className="bg-slate-800/30 p-4 rounded">
+                    <p className="text-slate-400 text-sm mb-1">
+                      Completed
+                    </p>
+
+                    <p className="text-2xl font-bold text-green-400">
+                      {tasks.filter((t) => t.completed).length}
+                    </p>
+                  </div>
+
                 </div>
               </div>
             )}
 
+            {/* Inventory */}
             {activeTab === 'inventory' && (
               <InventoryPanel user={user} />
             )}
+
           </div>
         </div>
       </main>
